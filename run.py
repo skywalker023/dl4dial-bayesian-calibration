@@ -33,8 +33,9 @@ def model_single_score(data, config):
     p(s_a) ~ N(s_a; m_a, 1^2): prior for each score data point given model sampled mean
     """
     zm = []
+    score_range = config['score_range']
     for mi in range(config['n_models']):
-        mu_ = pyro.sample("model-mean-{}".format(mi), dist.Uniform(0., 3.))
+        mu_ = pyro.sample("model-mean-{}".format(mi), dist.Uniform(score_range[0], score_range[1]))
         zm.append(pyro.sample("model-{}".format(mi), dist.Normal(mu_, 1.)))
 
     """
@@ -72,13 +73,16 @@ def prepare_data(args):
     # we assume models and annotator indexing from 0
     n_turkers = max([a[1] for a in data])+1
     n_models = max([a[0] for a in data])+1
-    
+    max_score = max(data[:, 2])
+    min_score = min(data[:, 2])
+
     config = {
         'logging-level': args.logging_level,
         'num-samples': args.num_samples,
         'warmup-steps': args.num_warmup_samples,
         'n_models': n_models,
         'n_turkers': n_turkers,
+        'score_range': (min_score, max_score)
     }
     return config, data
 
@@ -94,5 +98,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
